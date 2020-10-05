@@ -1,9 +1,10 @@
 package domain
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/require"
 	"github.com/zencoder/go-smile/testdata"
-	"testing"
 )
 
 func TestDecodeHeader(t *testing.T) {
@@ -19,6 +20,7 @@ func TestDecodeHeader(t *testing.T) {
 			RawBinaryPresent:                  false,
 			SharedStringValueEncodingEnabled:  true,
 			SharedPropertyNameEncodingEnabled: true,
+			SizeBytes:                         4,
 		},
 		header,
 	)
