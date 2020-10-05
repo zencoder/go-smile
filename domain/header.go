@@ -9,6 +9,7 @@ type Header struct {
 	RawBinaryPresent                  bool
 	SharedStringValueEncodingEnabled  bool
 	SharedPropertyNameEncodingEnabled bool
+	SizeBytes                         int
 }
 
 /*
@@ -35,11 +36,12 @@ func DecodeHeader(b []byte) (Header, error) {
 		return Header{}, errors.New("smile format must begin with the ':)' header followed by a newline")
 	}
 
-	var flags uint8 = b[3]
+	var flags = b[3]
 	return Header{
 		Version:                           int(flags >> 4),
 		RawBinaryPresent:                  (0x04 & flags) != 0,
 		SharedStringValueEncodingEnabled:  (0x02 & flags) != 0,
 		SharedPropertyNameEncodingEnabled: (0x01 & flags) != 0,
+		SizeBytes:                         4,
 	}, nil
 }
