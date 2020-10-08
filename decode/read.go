@@ -35,24 +35,8 @@ func readSimpleLiteral(smileBytes []byte) ([]byte, interface{}, error) {
 	default:
 		return smileBytes[1:], nil, fmt.Errorf("error reading simple literal byte '%X'", literalByte)
 	}
-
-	//} else if (token === 0x26) { // BigInteger
-	//	n = decoderStream.readBigInt();
-	//	pushDebugToken('BIGINT', n);
-	//	return n;
-	//} else if (token === 0x28) { // 32-bit float
-	//	n = decoderStream.readFloat32();
-	//	pushDebugToken('FLOAT32', n);
-	//	return n;
-	//} else if (token === 0x29) { // 64-bit double
-	//	n = decoderStream.readFloat64();
-	//	pushDebugToken('FLOAT64', n);
-	//	return n;
-	//} else if (token === 0x2a) { // BigDecimal
-	//	n = decoderStream.readBigDecimal();
-	//	pushDebugToken('BIGDECIMAL', n);
-	//	return n;
-
+	// TODO: BigInteger
+	// TODO: BigDecimal
 }
 
 func readFloat32(smileBytes []byte) ([]byte, interface{}, error) {
