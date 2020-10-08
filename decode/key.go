@@ -1,7 +1,6 @@
 package decode
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -40,20 +39,54 @@ func parseKey(smileBytes []byte) ([]byte, interface{}, error) {
 		return smileBytes, "", nil
 	}
 	if nextByte >= 0x30 && nextByte <= 0x33 {
-		return smileBytes, "unimplemented", errors.New("Unimplemented 'Long' shared key name reference")
+		return readLongSharedKey(smileBytes)
 	}
 	if nextByte == 0x34 {
-		return readLongUTF8(smileBytes[1:])
+		return readVariableLengthText(smileBytes[1:])
 	}
 	if nextByte >= 0x40 && nextByte <= 0x7F {
-		return smileBytes, "unimplemented", errors.New("Unimplemented 'Short' shared key name reference")
+		return readShortSharedKey(smileBytes)
 	}
 	if nextByte >= 0x80 && nextByte <= 0xBF {
-		return readAscii(smileBytes)
+		smileBytes, keyName, err := readTinyAscii(smileBytes)
+		if err == nil {
+			sharedKeyNames = append(sharedKeyNames, keyName)
+		}
+		return smileBytes, keyName, err
 	}
 	if nextByte >= 0xc0 && nextByte <= 0xf7 {
-		return readShortUTF8(smileBytes)
+		smileBytes, keyName, err := readShortUTF8Key(smileBytes)
+		if err == nil {
+			sharedKeyNames = append(sharedKeyNames, keyName)
+		}
+		return smileBytes, keyName, err
 	}
 
 	return nil, nil, fmt.Errorf("unexpected key token: %X", nextByte)
+}
+
+func readShortUTF8Key(smileBytes []byte) ([]byte, interface{}, error) {
+	var length = int(smileBytes[0]&0x1F) + 2
+	smileBytes = smileBytes[1:]
+
+	return smileBytes[length:], string(smileBytes[:length]), nil
+}
+
+func readLongSharedKey(smileBytes []byte) ([]byte, interface{}, error) {
+	var ref = (int(smileBytes[0]&0x03) << 8) | int(smileBytes[1])
+	if len(sharedKeyNames) < ref {
+		return smileBytes[2:], nil, fmt.Errorf("shared Key %d requested but only %d keys available", ref, len(sharedKeyNames))
+	}
+
+	return smileBytes[2:], sharedKeyNames[ref], nil
+
+}
+
+func readShortSharedKey(smileBytes []byte) ([]byte, interface{}, error) {
+	var ref = int(smileBytes[0] & 0x3f)
+	if len(sharedKeyNames) < ref {
+		return smileBytes[1:], nil, fmt.Errorf("shared Key %d requested but only %d keys available", ref, len(sharedKeyNames))
+	}
+
+	return smileBytes[1:], sharedKeyNames[ref], nil
 }
