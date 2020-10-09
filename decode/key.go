@@ -32,32 +32,32 @@ Byte ranges are divides in 4 main sections (64 byte values each):
     0xFC - 0xFF: reserved for framing, not used in key mode (used in value mode)
 
 */
-func parseKey(smileBytes []byte) ([]byte, interface{}, error) {
+func (d *decoder) parseKey(smileBytes []byte) ([]byte, interface{}, error) {
 	nextByte := smileBytes[0]
 
 	if nextByte == EMPTY_STRING {
 		return smileBytes, "", nil
 	}
 	if nextByte >= 0x30 && nextByte <= 0x33 {
-		return readLongSharedKey(smileBytes)
+		return d.readLongSharedKey(smileBytes)
 	}
 	if nextByte == 0x34 {
 		return readVariableLengthText(smileBytes[1:])
 	}
 	if nextByte >= 0x40 && nextByte <= 0x7F {
-		return readShortSharedKey(smileBytes)
+		return d.readShortSharedKey(smileBytes)
 	}
 	if nextByte >= 0x80 && nextByte <= 0xBF {
 		smileBytes, keyName, err := readTinyAscii(smileBytes)
 		if err == nil {
-			addSharedKey(keyName)
+			d.sharedState.AddSharedKey(keyName)
 		}
 		return smileBytes, keyName, err
 	}
 	if nextByte >= 0xc0 && nextByte <= 0xf7 {
 		smileBytes, keyName, err := readShortUTF8Key(smileBytes)
 		if err == nil {
-			addSharedKey(keyName)
+			d.sharedState.AddSharedKey(keyName)
 		}
 		return smileBytes, keyName, err
 	}
@@ -68,25 +68,17 @@ func parseKey(smileBytes []byte) ([]byte, interface{}, error) {
 func readShortUTF8Key(smileBytes []byte) ([]byte, interface{}, error) {
 	var length = int(smileBytes[0]&0x1F) + 2
 	smileBytes = smileBytes[1:]
-
 	return smileBytes[length:], string(smileBytes[:length]), nil
 }
 
-func readLongSharedKey(smileBytes []byte) ([]byte, interface{}, error) {
+func (d *decoder) readLongSharedKey(smileBytes []byte) ([]byte, interface{}, error) {
 	var ref = (int(smileBytes[0]&0x03) << 8) | int(smileBytes[1])
-	if len(sharedKeyNames) < ref {
-		return smileBytes[2:], nil, fmt.Errorf("shared Key %d requested but only %d keys available", ref, len(sharedKeyNames))
-	}
-
-	return smileBytes[2:], sharedKeyNames[ref], nil
-
+	key, err := d.sharedState.GetSharedKey(ref)
+	return smileBytes[2:], key, err
 }
 
-func readShortSharedKey(smileBytes []byte) ([]byte, interface{}, error) {
+func (d *decoder) readShortSharedKey(smileBytes []byte) ([]byte, interface{}, error) {
 	var ref = int(smileBytes[0] & 0x3f)
-	if len(sharedKeyNames) < ref {
-		return smileBytes[1:], nil, fmt.Errorf("shared Key %d requested but only %d keys available", ref, len(sharedKeyNames))
-	}
-
-	return smileBytes[1:], sharedKeyNames[ref], nil
+	key, err := d.sharedState.GetSharedKey(ref)
+	return smileBytes[1:], key, err
 }
