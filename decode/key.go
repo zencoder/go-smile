@@ -50,14 +50,14 @@ func parseKey(smileBytes []byte) ([]byte, interface{}, error) {
 	if nextByte >= 0x80 && nextByte <= 0xBF {
 		smileBytes, keyName, err := readTinyAscii(smileBytes)
 		if err == nil {
-			sharedKeyNames = append(sharedKeyNames, keyName)
+			addSharedKey(keyName)
 		}
 		return smileBytes, keyName, err
 	}
 	if nextByte >= 0xc0 && nextByte <= 0xf7 {
 		smileBytes, keyName, err := readShortUTF8Key(smileBytes)
 		if err == nil {
-			sharedKeyNames = append(sharedKeyNames, keyName)
+			addSharedKey(keyName)
 		}
 		return smileBytes, keyName, err
 	}

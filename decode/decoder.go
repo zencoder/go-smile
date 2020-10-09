@@ -3,12 +3,27 @@ package decode
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/zencoder/go-smile/domain"
 )
 
 // TODO: Don't use shared state
 var sharedValues []interface{}
 var sharedKeyNames []interface{}
+
+func addSharedValue(sharedValue interface{}) {
+	if len(sharedValues) == 1024 {
+		sharedValues = []interface{}{}
+	}
+	sharedValues = append(sharedValues, sharedValue)
+}
+
+func addSharedKey(sharedKeyName interface{}) {
+	if len(sharedKeyNames) == 1024 {
+		sharedKeyNames = []interface{}{}
+	}
+	sharedKeyNames = append(sharedKeyNames, sharedKeyName)
+}
 
 func Decode(smile []byte) (string, error) {
 	// Reset shared state
@@ -41,7 +56,7 @@ func decodeBytes(smileBytes []byte) ([]byte, interface{}, error) {
 		// Short Shared Value String reference
 		ref := int(token&0x1f) - 1
 		if ref >= len(sharedValues) {
-			return smileBytes, nil, fmt.Errorf("shared Key %d requested but only %d keys available", ref, len(sharedValues))
+			return smileBytes, nil, fmt.Errorf("shared value %d requested but only %d values available", ref, len(sharedValues))
 		}
 		return smileBytes[1:], sharedValues[ref], nil
 	case 1:
@@ -51,28 +66,28 @@ func decodeBytes(smileBytes []byte) ([]byte, interface{}, error) {
 		// Tiny ASCII (1 - 32 bytes)
 		smileBytes, value, err := readTinyAscii(smileBytes)
 		if err == nil {
-			sharedValues = append(sharedValues, value)
+			addSharedValue(value)
 		}
 		return smileBytes, value, err
 	case 3:
 		// Short ASCII (33 - 64 bytes)
 		smileBytes, value, err := readShortAscii(smileBytes)
 		if err == nil {
-			sharedValues = append(sharedValues, value)
+			addSharedValue(value)
 		}
 		return smileBytes, value, err
 	case 4:
 		// Tiny Unicode (2 - 33 bytes; <= 33 characters)
 		smileBytes, value, err := readTinyUTF8(smileBytes)
 		if err == nil {
-			sharedValues = append(sharedValues, value)
+			addSharedValue(value)
 		}
 		return smileBytes, value, err
 	case 5:
 		// Short Unicode (34 - 64 bytes; <= 64 characters)
 		smileBytes, value, err := readShortUTF8(smileBytes)
 		if err == nil {
-			sharedValues = append(sharedValues, value)
+			addSharedValue(value)
 		}
 		return smileBytes, value, err
 	case 6:
@@ -130,9 +145,9 @@ func parseBinaryLongTextStructureValues(smileBytes []byte) ([]byte, interface{},
 		return smileBytes[1:], array, nil
 	case SHARED_STRING_REFERENCE_LONG_1, SHARED_STRING_REFERENCE_LONG_2, SHARED_STRING_REFERENCE_LONG_3, SHARED_STRING_REFERENCE_LONG_4:
 		// Long Shared Value String reference
-		var ref = (int(smileBytes[0]&0x03) << 8) | int(smileBytes[1])
+		var ref = (int(smileBytes[0]&0x03) << 8) | (int(smileBytes[1] & 0xFF))
 		if ref >= len(sharedValues) {
-			return smileBytes, nil, fmt.Errorf("shared Key %d requested but only %d keys available", ref, len(sharedValues))
+			return smileBytes, nil, fmt.Errorf("shared value %d requested but only %d values available", ref, len(sharedValues))
 		}
 		return smileBytes[2:], sharedValues[ref], nil
 	case LONG_UTF8:
