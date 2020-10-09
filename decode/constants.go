@@ -23,4 +23,4 @@ const INT_64 byte = 0x25
 const BIG_INT byte = 0x26 // TODO: Use
 const FLOAT_32 byte = 0x28
 const FLOAT_64 byte = 0x29
-const BIG_DECIMAL byte = 0x2A
+const BIG_DECIMAL byte = 0x2A // TODO: Use
