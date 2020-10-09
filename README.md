@@ -34,7 +34,7 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/zencoder/go-smile/decode"
+	"github.com/zencoder/go-smile/smile"
 )
 
 func main() {
@@ -45,7 +45,7 @@ func main() {
 		log.Fatal("Error reading Smile file:", smileFile)
 	}
 
-	j, err := decode.DecodeToJSON(b)
+	j, err := smile.DecodeToJSON(b)
 	if err != nil {
 		log.Fatal("Error decoding Smile file:", smileFile)
 	}
@@ -61,5 +61,5 @@ $ go run main.go
 
 The following convenience method is also provided for decoding to a Go representation of the JSON:
 ```go
-obj, err := decode.DecodeToObject(b)
+obj, err := smile.DecodeToObject(b)
 ```

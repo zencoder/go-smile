@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/zencoder/go-smile/decode"
+	"github.com/zencoder/go-smile/smile"
 	"github.com/zencoder/go-smile/test/testdata"
 )
 
@@ -19,7 +19,7 @@ func TestDecode(t *testing.T) {
 			jsonFile := testdata.LoadTestFile(t, f+".json")
 			smileFile := testdata.LoadTestFile(t, f+".smile")
 
-			actualJSON, err := decode.DecodeToJSON(smileFile)
+			actualJSON, err := smile.DecodeToJSON(smileFile)
 			require.NoError(t, err, "Error while decoding %q", f)
 
 			require.JSONEq(t, string(jsonFile), actualJSON, "Decoding %q didn't produce the expected result", f)

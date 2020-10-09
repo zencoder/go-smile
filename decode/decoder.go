@@ -1,42 +1,14 @@
 package decode
 
 import (
-	"encoding/json"
 	"fmt"
-
-	"github.com/zencoder/go-smile/domain"
 )
 
-func DecodeToJSON(smile []byte) (string, error) {
-	obj, err := DecodeToObject(smile)
-	if err != nil {
-		return "", err
-	}
-
-	jsonBytes, err := json.Marshal(obj)
-	if err != nil {
-		return "", err
-	}
-
-	return string(jsonBytes), nil
-}
-
-func DecodeToObject(smile []byte) (interface{}, error) {
-	header, err := domain.DecodeHeader(smile)
-	if err != nil {
-		return "", err
-	}
-
-	var d decoder
-	_, b, err := d.decodeBytes(smile[header.SizeBytes:])
-	return b, err
-}
-
-type decoder struct {
+type Decoder struct {
 	sharedState SharedState
 }
 
-func (d *decoder) decodeBytes(smileBytes []byte) ([]byte, interface{}, error) {
+func (d *Decoder) DecodeBytes(smileBytes []byte) ([]byte, interface{}, error) {
 	var token = smileBytes[0]
 	var tokenClass = token >> 5
 	switch tokenClass {
@@ -86,7 +58,7 @@ func (d *decoder) decodeBytes(smileBytes []byte) ([]byte, interface{}, error) {
 	return []byte{}, "", fmt.Errorf("unrecognised token: %X (Token Class %d)", token, tokenClass)
 }
 
-func (d *decoder) parseBinaryLongTextStructureValues(smileBytes []byte) ([]byte, interface{}, error) {
+func (d *Decoder) parseBinaryLongTextStructureValues(smileBytes []byte) ([]byte, interface{}, error) {
 	nextByte := smileBytes[0]
 	switch nextByte {
 	case START_OBJECT:
@@ -105,7 +77,7 @@ func (d *decoder) parseBinaryLongTextStructureValues(smileBytes []byte) ([]byte,
 				return smileBytes, object, err
 			}
 
-			smileBytes, value, err = d.decodeBytes(smileBytes)
+			smileBytes, value, err = d.DecodeBytes(smileBytes)
 			if err != nil {
 				return smileBytes, object, err
 			}
@@ -121,7 +93,7 @@ func (d *decoder) parseBinaryLongTextStructureValues(smileBytes []byte) ([]byte,
 		for smileBytes[0] != END_ARRAY {
 			var obj interface{}
 			var err error
-			smileBytes, obj, err = d.decodeBytes(smileBytes)
+			smileBytes, obj, err = d.DecodeBytes(smileBytes)
 			if err != nil {
 				return smileBytes, obj, err
 			}

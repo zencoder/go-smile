@@ -32,7 +32,7 @@ Byte ranges are divides in 4 main sections (64 byte values each):
     0xFC - 0xFF: reserved for framing, not used in key mode (used in value mode)
 
 */
-func (d *decoder) parseKey(smileBytes []byte) ([]byte, interface{}, error) {
+func (d *Decoder) parseKey(smileBytes []byte) ([]byte, interface{}, error) {
 	nextByte := smileBytes[0]
 
 	if nextByte == EMPTY_STRING {
@@ -71,13 +71,13 @@ func readShortUTF8Key(smileBytes []byte) ([]byte, interface{}, error) {
 	return smileBytes[length:], string(smileBytes[:length]), nil
 }
 
-func (d *decoder) readLongSharedKey(smileBytes []byte) ([]byte, interface{}, error) {
+func (d *Decoder) readLongSharedKey(smileBytes []byte) ([]byte, interface{}, error) {
 	var ref = (int(smileBytes[0]&0x03) << 8) | int(smileBytes[1])
 	key, err := d.sharedState.GetSharedKey(ref)
 	return smileBytes[2:], key, err
 }
 
-func (d *decoder) readShortSharedKey(smileBytes []byte) ([]byte, interface{}, error) {
+func (d *Decoder) readShortSharedKey(smileBytes []byte) ([]byte, interface{}, error) {
 	var ref = int(smileBytes[0] & 0x3f)
 	key, err := d.sharedState.GetSharedKey(ref)
 	return smileBytes[1:], key, err
