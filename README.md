@@ -1,6 +1,6 @@
-# go-smile
+# go-smile :)
 
-A Golang implementation of the [Jackson-Smile](https://github.com/FasterXML/smile-format-specification) data format.
+A Golang implementation of the [Jackson-Smile](https://github.com/FasterXML/smile-format-specification) binary JSON data format.
 
 ## What's supported
 
