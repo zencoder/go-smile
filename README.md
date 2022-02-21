@@ -5,7 +5,6 @@ A Golang implementation of the [Jackson-Smile](https://github.com/FasterXML/smil
 ## What's supported
 
 * Decoding is fully supported minus:
-  * Big Integers
   * Big Decimals
 
 * Encoding is not yet supported
