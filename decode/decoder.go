@@ -107,7 +107,22 @@ func (d *Decoder) parseBinaryLongTextStructureValues(smileBytes []byte) ([]byte,
 		return smileBytes[2:], value, err
 	case LONG_UTF8:
 		return readVariableLengthText(smileBytes)
+	case START_BINARY:
+		return d.parseBinary(smileBytes[1:])
 	}
 
 	return nil, nil, fmt.Errorf("unknown byte '%X' in parseBinaryLongTextStructureValues\n", nextByte)
+}
+
+func (d *Decoder) parseBinary(smileBytes []byte) ([]byte, interface{}, error) {
+	smileBytes, length, err := readVarInt(smileBytes, true)
+	if err != nil {
+		return smileBytes, nil, err
+	}
+	data := smileBytes[:length*2]
+	smileBytes = smileBytes[length*2:]
+	if smileBytes[0] == END_BINARY {
+		return smileBytes[1:], data, nil
+	}
+	return smileBytes, data, nil
 }
